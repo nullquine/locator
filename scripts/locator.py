@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #estimating sample locations from genotype matrices
 import allel, re, os, matplotlib, sys, zarr, time, subprocess, copy
 import numpy as np, pandas as pd, tensorflow as tf
@@ -239,7 +240,7 @@ def load_network(traingen,dropout_prop):
 def load_callbacks(boot):
     if args.bootstrap or args.jacknife:
         checkpointer=tf.keras.callbacks.ModelCheckpoint(
-                      filepath=args.out+"_boot"+str(boot)+"_weights.hdf5",
+                      filepath=args.out+"_boot"+str(boot)+".weights.h5",
                       verbose=args.keras_verbose,
                       save_best_only=True,
                       save_weights_only=True,
@@ -247,7 +248,7 @@ def load_callbacks(boot):
                       period=1)
     else:
         checkpointer=tf.keras.callbacks.ModelCheckpoint(
-                      filepath=args.out+"_weights.hdf5",
+                      filepath=args.out+".weights.h5",
                       verbose=args.keras_verbose,
                       save_best_only=True,
                       save_weights_only=True,
@@ -275,9 +276,9 @@ def train_network(model,traingen,testgen,trainlocs,testlocs):
                         validation_data=(testgen,testlocs),
                         callbacks=[checkpointer,earlystop,reducelr])
     if args.bootstrap or args.jacknife:
-        model.load_weights(args.out+"_boot"+str(boot)+"_weights.hdf5")
+        model.load_weights(args.out+"_boot"+str(boot)+".weights.h5")
     else:
-        model.load_weights(args.out+"_weights.hdf5")
+        model.load_weights(args.out+".weights.h5")
     return history,model
 
 def predict_locs(model,predgen,sdlong,meanlong,sdlat,meanlat,testlocs,pred,samples,testgen,verbose=True):
@@ -366,7 +367,7 @@ if args.windows:
         dists=predict_locs(model,predgen,sdlong,meanlong,sdlat,meanlat,testlocs,pred,samples,testgen)
         plot_history(history,dists,args.gnuplot)
         if not args.keep_weights:
-            subprocess.run("rm "+args.out+"_weights.hdf5",shell=True)
+            subprocess.run("rm "+args.out+".weights.h5",shell=True)
         t2=time.time()
         elapsed=t2-t1
         print("run time "+str(elapsed/60)+" minutes")
@@ -385,7 +386,7 @@ else:
         dists=predict_locs(model,predgen,sdlong,meanlong,sdlat,meanlat,testlocs,pred,samples,testgen)
         plot_history(history,dists,args.gnuplot)
         if not args.keep_weights:
-            subprocess.run("rm "+args.out+"_weights.hdf5",shell=True)
+            subprocess.run("rm "+args.out+".weights.h5",shell=True)
         end=time.time()
         elapsed=end-start
         print("run time "+str(elapsed/60)+" minutes")
@@ -403,7 +404,7 @@ else:
         dists=predict_locs(model,predgen,sdlong,meanlong,sdlat,meanlat,testlocs,pred,samples,testgen)
         plot_history(history,dists,args.gnuplot)
         if not args.keep_weights:
-            subprocess.run("rm "+args.out+"_bootFULL_weights.hdf5",shell=True)
+            subprocess.run("rm "+args.out+"_bootFULL.weights.h5",shell=True)
         end=time.time()
         elapsed=end-start
         print("run time "+str(elapsed/60)+" minutes")
@@ -424,7 +425,7 @@ else:
             dists=predict_locs(model,predgen2,sdlong,meanlong,sdlat,meanlat,testlocs,pred,samples,testgen2)
             plot_history(history,dists,args.gnuplot)
             if not args.keep_weights:
-                subprocess.run("rm "+args.out+"_boot"+str(boot)+"_weights.hdf5",shell=True)
+                subprocess.run("rm "+args.out+"_boot"+str(boot)+".weights.h5",shell=True)
             end=time.time()
             elapsed=end-start
             K.clear_session()
@@ -459,7 +460,7 @@ else:
                 #pg[:,i]=af[i]
             dists=predict_locs(model,pg,sdlong,meanlong,sdlat,meanlat,testlocs,pred,samples,testgen,verbose=False) #TODO: check testgen behavior for printing R2 to screen with jacknife in predict mode
         if not args.keep_weights:
-            subprocess.run("rm "+args.out+"_bootFULL_weights.hdf5",shell=True)
+            subprocess.run("rm "+args.out+"_bootFULL.weights.h5",shell=True)
 
 #ag1000g.phase1.ar3.pass.2L.0-5e6.zarr
 ###debugging params
